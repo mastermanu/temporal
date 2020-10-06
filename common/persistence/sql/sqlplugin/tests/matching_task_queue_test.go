@@ -1,3 +1,25 @@
+// The MIT License
+//
+// Copyright (c) 2020 Temporal Technologies Inc.  All rights reserved.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
 package tests
 
 import (
@@ -71,7 +93,7 @@ func (s *matchingTaskQueueSuite) TestInsert_Success() {
 	s.Equal(1, int(rowsAffected))
 }
 
-func (s *matchingTaskQueueSuite) TestInsert_Fail() {
+func (s *matchingTaskQueueSuite) TestInsert_Fail_Duplicate() {
 	queueID := shuffle.Bytes(testMatchingTaskTaskQueueID)
 	rangeID := int64(1)
 
@@ -107,7 +129,7 @@ func (s *matchingTaskQueueSuite) TestInsertSelect() {
 	s.Equal([]sqlplugin.TaskQueuesRow{taskQueue}, rows)
 }
 
-func (s *matchingTaskQueueSuite) TestReplace_Exists() {
+func (s *matchingTaskQueueSuite) TestInsertReplace_Exists() {
 	queueID := shuffle.Bytes(testMatchingTaskTaskQueueID)
 	rangeID := int64(1)
 
@@ -159,7 +181,7 @@ func (s *matchingTaskQueueSuite) TestReplaceSelect() {
 	s.Equal([]sqlplugin.TaskQueuesRow{taskQueue}, rows)
 }
 
-func (s *matchingTaskQueueSuite) TestUpdate_Success() {
+func (s *matchingTaskQueueSuite) TestInsertUpdate_Success() {
 	queueID := shuffle.Bytes(testMatchingTaskTaskQueueID)
 	rangeID := int64(1)
 
@@ -183,11 +205,13 @@ func (s *matchingTaskQueueSuite) TestUpdate_Fail() {
 	rangeID := int64(1)
 
 	taskQueue := s.newRandomTasksQueueRow(queueID, rangeID)
-	_, err := s.store.UpdateTaskQueues(&taskQueue)
+	result, err := s.store.UpdateTaskQueues(&taskQueue)
 	s.NoError(err)
+	rowsAffected, err := result.RowsAffected()
+	s.Equal(0, int(rowsAffected))
 }
 
-func (s *matchingTaskQueueSuite) TestUpdateSelect() {
+func (s *matchingTaskQueueSuite) TestInsertUpdateSelect() {
 	queueID := shuffle.Bytes(testMatchingTaskTaskQueueID)
 	rangeID := int64(1)
 
@@ -242,6 +266,21 @@ func (s *matchingTaskQueueSuite) TestInsertDeleteSelect_Success() {
 	rows, err := s.store.SelectFromTaskQueues(filter)
 	s.Error(err) // TODO persistence layer should do proper error translation
 	s.Nil(rows)
+}
+
+func (s *matchingTaskQueueSuite) TestDelete() {
+	queueID := shuffle.Bytes(testMatchingTaskTaskQueueID)
+	rangeID := int64(1)
+
+	filter := &sqlplugin.TaskQueuesFilter{
+		RangeHash:   testMatchingTaskQueueRangeHash,
+		TaskQueueID: queueID,
+		RangeID:     convert.Int64Ptr(rangeID),
+	}
+	result, err := s.store.DeleteFromTaskQueues(filter)
+	s.NoError(err)
+	rowsAffected, err := result.RowsAffected()
+	s.Equal(0, int(rowsAffected))
 }
 
 func (s *matchingTaskQueueSuite) TestInsertDeleteSelect_Fail() {
@@ -304,7 +343,7 @@ func (s *matchingTaskQueueSuite) newRandomTasksQueueRow(
 		RangeHash:    testMatchingTaskQueueRangeHash,
 		TaskQueueID:  queueID,
 		RangeID:      rangeID,
-		Data:         testMatchingTaskTaskQueueData,
+		Data:         shuffle.Bytes(testMatchingTaskTaskQueueData),
 		DataEncoding: testMatchingTaskQueueEncoding,
 	}
 }
