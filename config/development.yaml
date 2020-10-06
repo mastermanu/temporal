@@ -5,16 +5,16 @@ persistence:
   datastores:
     cass-default:
       cassandra:
-        hosts: "100.20.255.18, 54.188.60.230, 44.241.137.79"
+        hosts: "44.235.146.165,52.25.25.84,44.241.47.235"
         keyspace: "temporal"
         user: "scylla"
-        password: "AgYFqUT65NPea1R"
+        password: "y7tSv2mc6Arownb"
     cass-visibility:
       cassandra:
-        hosts: "100.20.255.18, 54.188.60.230, 44.241.137.79"
+        hosts: "44.235.146.165,52.25.25.84,44.241.47.235"
         keyspace: "temporalvis"
         user: "scylla"
-        password: "AgYFqUT65NPea1R"
+        password: "y7tSv2mc6Arownb"
 global:
   membership:
     name: temporal

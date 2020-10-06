@@ -139,6 +139,9 @@ func GetTestClusterConfig(configFile string) (*TestClusterConfig, error) {
 		return nil, fmt.Errorf("failed to decode test cluster config %v", err)
 	}
 
+	options.Persistence.DBUsername = "scylla"
+	options.Persistence.DBPassword = "y7tSv2mc6Arownb"
+	options.Persistence.DBHost = "44.235.146.165"
 	options.FrontendAddress = TestFlags.FrontendAddr
 	if options.ESConfig != nil {
 		options.ESConfig.Indices[common.VisibilityAppName] += uuid.New()

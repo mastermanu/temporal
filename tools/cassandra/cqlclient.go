@@ -122,6 +122,17 @@ func newCQLClient(cfg *CQLClientConfig) (*cqlClient, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	clusterCfg.Authenticator = gocql.PasswordAuthenticator{
+		Username: "scylla",
+		Password: "y7tSv2mc6Arownb",
+	}
+
+	clusterCfg.Hosts = []string{"44.235.146.165", "52.25.25.84", "44.241.47.235"}
+
+	clusterCfg.ConnectTimeout = time.Second * 10
+	clusterCfg.Timeout = time.Second * 10
+
 	cqlClient := new(cqlClient)
 	cqlClient.nReplicas = cfg.numReplicas
 	cqlClient.clusterConfig = clusterCfg
