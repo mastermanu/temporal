@@ -125,10 +125,10 @@ func newCQLClient(cfg *CQLClientConfig) (*cqlClient, error) {
 
 	clusterCfg.Authenticator = gocql.PasswordAuthenticator{
 		Username: "scylla",
-		Password: "y7tSv2mc6Arownb",
+		Password: "g75hmEw1fbSVqvd",
 	}
 
-	clusterCfg.Hosts = []string{"44.235.146.165", "52.25.25.84", "44.241.47.235"}
+	clusterCfg.Hosts = []string{"44.238.119.179", "44.237.129.58", "44.239.99.99"}
 
 	clusterCfg.ConnectTimeout = time.Second * 10
 	clusterCfg.Timeout = time.Second * 10

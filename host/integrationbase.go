@@ -140,8 +140,8 @@ func GetTestClusterConfig(configFile string) (*TestClusterConfig, error) {
 	}
 
 	options.Persistence.DBUsername = "scylla"
-	options.Persistence.DBPassword = "y7tSv2mc6Arownb"
-	options.Persistence.DBHost = "44.235.146.165"
+	options.Persistence.DBPassword = "g75hmEw1fbSVqvd"
+	options.Persistence.DBHost = "44.238.119.179"
 	options.FrontendAddress = TestFlags.FrontendAddr
 	if options.ESConfig != nil {
 		options.ESConfig.Indices[common.VisibilityAppName] += uuid.New()
