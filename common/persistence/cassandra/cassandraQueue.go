@@ -410,7 +410,7 @@ func (q *cassandraQueue) updateQueueMetadata(
 	)
 	applied, err := query.ScanCAS(nil)
 	if err != nil {
-		return serviceerror.NewInternal(fmt.Sprintf("UpdateAckLevel operation failed. Error %v", err))
+		return serviceerror.NewInternal(fmt.Sprintf("UpdateAckLevel operation failed. GO FUCK2 YOURSELF! Error %v", err))
 	}
 	if !applied {
 		return serviceerror.NewInternal(fmt.Sprintf("UpdateAckLevel operation encounter concurrent write."))
