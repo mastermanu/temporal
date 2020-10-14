@@ -2,6 +2,8 @@
 //
 // Copyright (c) 2020 Temporal Technologies Inc.  All rights reserved.
 //
+// Copyright (c) 2020 Uber Technologies, Inc.
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
@@ -34,124 +36,11 @@ type (
 		WriteLockShards(filter *ShardsFilter) (int64, error)
 	}
 
-	// historyEvent is the SQL persistence interface for history nodes and history trees
-	historyEvent interface {
-		InsertIntoHistoryNode(row *HistoryNodeRow) (sql.Result, error)
-		SelectFromHistoryNode(filter *HistoryNodeFilter) ([]HistoryNodeRow, error)
-		DeleteFromHistoryNode(filter *HistoryNodeFilter) (sql.Result, error)
-		InsertIntoHistoryTree(row *HistoryTreeRow) (sql.Result, error)
-		SelectFromHistoryTree(filter *HistoryTreeFilter) ([]HistoryTreeRow, error)
-		DeleteFromHistoryTree(filter *HistoryTreeFilter) (sql.Result, error)
-	}
-
-	// HistoryExecution is the SQL persistence interface for history nodes and history executions
-	HistoryExecution interface {
-		InsertIntoExecutions(row *ExecutionsRow) (sql.Result, error)
-		UpdateExecutions(row *ExecutionsRow) (sql.Result, error)
-		SelectFromExecutions(filter *ExecutionsFilter) (*ExecutionsRow, error)
-		DeleteFromExecutions(filter *ExecutionsFilter) (sql.Result, error)
-		ReadLockExecutions(filter *ExecutionsFilter) (int, error)
-		WriteLockExecutions(filter *ExecutionsFilter) (int, error)
-
-		LockCurrentExecutionsJoinExecutions(filter *CurrentExecutionsFilter) ([]CurrentExecutionsRow, error)
-
-		InsertIntoCurrentExecutions(row *CurrentExecutionsRow) (sql.Result, error)
-		UpdateCurrentExecutions(row *CurrentExecutionsRow) (sql.Result, error)
-		// SelectFromCurrentExecutions returns one or more rows from current_executions table
-		// Required params - {shardID, namespaceID, workflowID}
-		SelectFromCurrentExecutions(filter *CurrentExecutionsFilter) (*CurrentExecutionsRow, error)
-		// DeleteFromCurrentExecutions deletes a single row that matches the filter criteria
-		// If a row exist, that row will be deleted and this method will return success
-		// If there is no row matching the filter criteria, this method will still return success
-		// Callers can check the output of Result.RowsAffected() to see if a row was deleted or not
-		// Required params - {shardID, namespaceID, workflowID, runID}
-		DeleteFromCurrentExecutions(filter *CurrentExecutionsFilter) (sql.Result, error)
-		LockCurrentExecutions(filter *CurrentExecutionsFilter) (*CurrentExecutionsRow, error)
-	}
-
 	// HistoryExecutionBuffer is the SQL persistence interface for history nodes and history execution buffer events
 	HistoryExecutionBuffer interface {
 		InsertIntoBufferedEvents(rows []BufferedEventsRow) (sql.Result, error)
 		SelectFromBufferedEvents(filter *BufferedEventsFilter) ([]BufferedEventsRow, error)
 		DeleteFromBufferedEvents(filter *BufferedEventsFilter) (sql.Result, error)
-	}
-
-	// HistoryExecutionActivity is the SQL persistence interface for history nodes and history execution activities
-	HistoryExecutionActivity interface {
-		ReplaceIntoActivityInfoMaps(rows []ActivityInfoMapsRow) (sql.Result, error)
-		// SelectFromActivityInfoMaps returns one or more rows from activity_info_maps
-		// Required filter params - {shardID, namespaceID, workflowID, runID}
-		SelectFromActivityInfoMaps(filter *ActivityInfoMapsFilter) ([]ActivityInfoMapsRow, error)
-		// DeleteFromActivityInfoMaps deletes a row from activity_info_maps table
-		// Required filter params
-		// - single row delete - {shardID, namespaceID, workflowID, runID, scheduleID}
-		// - range delete - {shardID, namespaceID, workflowID, runID}
-		DeleteFromActivityInfoMaps(filter *ActivityInfoMapsFilter) (sql.Result, error)
-	}
-
-	// HistoryExecutionChildWorkflow is the SQL persistence interface for history nodes and history execution child workflows
-	HistoryExecutionChildWorkflow interface {
-		ReplaceIntoChildExecutionInfoMaps(rows []ChildExecutionInfoMapsRow) (sql.Result, error)
-		// SelectFromChildExecutionInfoMaps returns one or more rows form child_execution_info_maps table
-		// Required filter params - {shardID, namespaceID, workflowID, runID}
-		SelectFromChildExecutionInfoMaps(filter *ChildExecutionInfoMapsFilter) ([]ChildExecutionInfoMapsRow, error)
-		// DeleteFromChildExecutionInfoMaps deletes one or more rows from child_execution_info_maps
-		// Required filter params
-		// - single row - {shardID, namespaceID, workflowID, runID, initiatedID}
-		// - multiple rows - {shardID, namespaceID, workflowID, runID}
-		DeleteFromChildExecutionInfoMaps(filter *ChildExecutionInfoMapsFilter) (sql.Result, error)
-	}
-
-	// HistoryExecutionTimer is the SQL persistence interface for history nodes and history execution timers
-	HistoryExecutionTimer interface {
-		ReplaceIntoTimerInfoMaps(rows []TimerInfoMapsRow) (sql.Result, error)
-		// SelectFromTimerInfoMaps returns one or more rows form timer_info_maps table
-		// Required filter params - {shardID, namespaceID, workflowID, runID}
-		SelectFromTimerInfoMaps(filter *TimerInfoMapsFilter) ([]TimerInfoMapsRow, error)
-		// DeleteFromTimerInfoMaps deletes one or more rows from timer_info_maps
-		// Required filter params
-		// - single row - {shardID, namespaceID, workflowID, runID, timerID}
-		// - multiple rows - {shardID, namespaceID, workflowID, runID}
-		DeleteFromTimerInfoMaps(filter *TimerInfoMapsFilter) (sql.Result, error)
-	}
-
-	// HistoryExecutionRequestCancel is the SQL persistence interface for history nodes and history execution request cancels
-	HistoryExecutionRequestCancel interface {
-		ReplaceIntoRequestCancelInfoMaps(rows []RequestCancelInfoMapsRow) (sql.Result, error)
-		// SelectFromRequestCancelInfoMaps returns one or more rows form request_cancel_info_maps table
-		// Required filter params - {shardID, namespaceID, workflowID, runID}
-		SelectFromRequestCancelInfoMaps(filter *RequestCancelInfoMapsFilter) ([]RequestCancelInfoMapsRow, error)
-		// DeleteFromRequestCancelInfoMaps deletes one or more rows from request_cancel_info_maps
-		// Required filter params
-		// - single row - {shardID, namespaceID, workflowID, runID, initiatedID}
-		// - multiple rows - {shardID, namespaceID, workflowID, runID}
-		DeleteFromRequestCancelInfoMaps(filter *RequestCancelInfoMapsFilter) (sql.Result, error)
-	}
-
-	// HistoryExecutionSignal is the SQL persistence interface for history nodes and history execution signals
-	HistoryExecutionSignal interface {
-		ReplaceIntoSignalInfoMaps(rows []SignalInfoMapsRow) (sql.Result, error)
-		// SelectFromSignalInfoMaps returns one or more rows form signal_info_maps table
-		// Required filter params - {shardID, namespaceID, workflowID, runID}
-		SelectFromSignalInfoMaps(filter *SignalInfoMapsFilter) ([]SignalInfoMapsRow, error)
-		// DeleteFromSignalInfoMaps deletes one or more rows from signal_info_maps table
-		// Required filter params
-		// - single row - {shardID, namespaceID, workflowID, runID, initiatedID}
-		// - multiple rows - {shardID, namespaceID, workflowID, runID}
-		DeleteFromSignalInfoMaps(filter *SignalInfoMapsFilter) (sql.Result, error)
-	}
-
-	// HistoryExecutionSignalRequest is the SQL persistence interface for history nodes and history execution signal request
-	HistoryExecutionSignalRequest interface {
-		ReplaceIntoSignalsRequestedSets(rows []SignalsRequestedSetsRow) (sql.Result, error)
-		// SelectFromSignalInfoMaps returns one or more rows form signals_requested_sets table
-		// Required filter params - {shardID, namespaceID, workflowID, runID}
-		SelectFromSignalsRequestedSets(filter *SignalsRequestedSetsFilter) ([]SignalsRequestedSetsRow, error)
-		// DeleteFromSignalsRequestedSets deletes one or more rows from signals_requested_sets
-		// Required filter params
-		// - single row - {shardID, namespaceID, workflowID, runID, signalID}
-		// - multiple rows - {shardID, namespaceID, workflowID, runID}
-		DeleteFromSignalsRequestedSets(filter *SignalsRequestedSetsFilter) (sql.Result, error)
 	}
 
 	// HistoryReplicationTask is the SQL persistence interface for history nodes and history replication tasks

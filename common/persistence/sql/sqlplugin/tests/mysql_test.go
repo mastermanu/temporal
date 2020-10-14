@@ -2,6 +2,8 @@
 //
 // Copyright (c) 2020 Temporal Technologies Inc.  All rights reserved.
 //
+// Copyright (c) 2020 Uber Technologies, Inc.
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
@@ -119,6 +121,74 @@ func TestMySQLHistoryShardSuite(t *testing.T) {
 	}()
 
 	s := newHistoryShardSuite(t, store)
+	suite.Run(t, s)
+}
+
+func TestMySQLHistoryNodeSuite(t *testing.T) {
+	cfg := NewMySQLConfig()
+	SetupMySQLDatabase(cfg)
+	SetupMySQLSchema(cfg)
+	store, err := sql.NewSQLDB(cfg)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create MySQL DB: %v", err))
+	}
+	defer func() {
+		_ = store.Close()
+		TearDownMySQLDatabase(cfg)
+	}()
+
+	s := newHistoryNodeSuite(t, store)
+	suite.Run(t, s)
+}
+
+func TestMySQLHistoryTreeSuite(t *testing.T) {
+	cfg := NewMySQLConfig()
+	SetupMySQLDatabase(cfg)
+	SetupMySQLSchema(cfg)
+	store, err := sql.NewSQLDB(cfg)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create MySQL DB: %v", err))
+	}
+	defer func() {
+		_ = store.Close()
+		TearDownMySQLDatabase(cfg)
+	}()
+
+	s := newHistoryTreeSuite(t, store)
+	suite.Run(t, s)
+}
+
+func TestMySQLHistoryCurrentExecutionSuite(t *testing.T) {
+	cfg := NewMySQLConfig()
+	SetupMySQLDatabase(cfg)
+	SetupMySQLSchema(cfg)
+	store, err := sql.NewSQLDB(cfg)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create MySQL DB: %v", err))
+	}
+	defer func() {
+		_ = store.Close()
+		TearDownMySQLDatabase(cfg)
+	}()
+
+	s := newHistoryCurrentExecutionSuite(t, store)
+	suite.Run(t, s)
+}
+
+func TestMySQLHistoryExecutionSuite(t *testing.T) {
+	cfg := NewMySQLConfig()
+	SetupMySQLDatabase(cfg)
+	SetupMySQLSchema(cfg)
+	store, err := sql.NewSQLDB(cfg)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create MySQL DB: %v", err))
+	}
+	defer func() {
+		_ = store.Close()
+		TearDownMySQLDatabase(cfg)
+	}()
+
+	s := newHistoryExecutionSuite(t, store)
 	suite.Run(t, s)
 }
 

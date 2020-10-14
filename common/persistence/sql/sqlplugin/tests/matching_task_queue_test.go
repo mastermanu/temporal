@@ -2,6 +2,8 @@
 //
 // Copyright (c) 2020 Temporal Technologies Inc.  All rights reserved.
 //
+// Copyright (c) 2020 Uber Technologies, Inc.
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
@@ -238,6 +240,29 @@ func (s *matchingTaskQueueSuite) TestInsertUpdateSelect() {
 	s.Equal([]sqlplugin.TaskQueuesRow{taskQueue}, rows)
 }
 
+func (s *matchingTaskQueueSuite) TestDeleteSelect() {
+	queueID := shuffle.Bytes(testMatchingTaskTaskQueueID)
+	rangeID := int64(1)
+
+	filter := &sqlplugin.TaskQueuesFilter{
+		RangeHash:   testMatchingTaskQueueRangeHash,
+		TaskQueueID: queueID,
+		RangeID:     convert.Int64Ptr(rangeID),
+	}
+	result, err := s.store.DeleteFromTaskQueues(filter)
+	s.NoError(err)
+	rowsAffected, err := result.RowsAffected()
+	s.Equal(0, int(rowsAffected))
+
+	filter = &sqlplugin.TaskQueuesFilter{
+		RangeHash:   testMatchingTaskQueueRangeHash,
+		TaskQueueID: queueID,
+	}
+	// TODO the behavior is weird
+	_, err = s.store.SelectFromTaskQueues(filter)
+	s.Error(err) // TODO persistence layer should do proper error translation
+}
+
 func (s *matchingTaskQueueSuite) TestInsertDeleteSelect_Success() {
 	queueID := shuffle.Bytes(testMatchingTaskTaskQueueID)
 	rangeID := int64(1)
@@ -266,21 +291,6 @@ func (s *matchingTaskQueueSuite) TestInsertDeleteSelect_Success() {
 	rows, err := s.store.SelectFromTaskQueues(filter)
 	s.Error(err) // TODO persistence layer should do proper error translation
 	s.Nil(rows)
-}
-
-func (s *matchingTaskQueueSuite) TestDelete() {
-	queueID := shuffle.Bytes(testMatchingTaskTaskQueueID)
-	rangeID := int64(1)
-
-	filter := &sqlplugin.TaskQueuesFilter{
-		RangeHash:   testMatchingTaskQueueRangeHash,
-		TaskQueueID: queueID,
-		RangeID:     convert.Int64Ptr(rangeID),
-	}
-	result, err := s.store.DeleteFromTaskQueues(filter)
-	s.NoError(err)
-	rowsAffected, err := result.RowsAffected()
-	s.Equal(0, int(rowsAffected))
 }
 
 func (s *matchingTaskQueueSuite) TestInsertDeleteSelect_Fail() {
@@ -324,12 +334,12 @@ func (s *matchingTaskQueueSuite) TestInsertLock() {
 	s.NoError(err)
 	s.Equal(1, int(rowsAffected))
 
+	// NOTE: lock without transaction is equivalent to select
+	//  this test only test the select functionality
 	filter := &sqlplugin.TaskQueuesFilter{
 		RangeHash:   testMatchingTaskQueueRangeHash,
 		TaskQueueID: queueID,
 	}
-	// NOTE: lock without transaction is equivalent to select
-	//  this test only test the select functionality
 	rangeIDInDB, err := s.store.LockTaskQueues(filter)
 	s.NoError(err)
 	s.Equal(rangeID, rangeIDInDB)

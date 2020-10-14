@@ -2,6 +2,8 @@
 //
 // Copyright (c) 2020 Temporal Technologies Inc.  All rights reserved.
 //
+// Copyright (c) 2020 Uber Technologies, Inc.
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
@@ -123,14 +125,13 @@ func (s *historyExecutionTimerSuite) TestReplaceSelect_Single() {
 	s.NoError(err)
 	s.Equal(1, int(rowsAffected))
 
-	filter := &sqlplugin.TimerInfoMapsFilter{
+	selectFilter := sqlplugin.TimerInfoMapsSelectFilter{
 		ShardID:     shardID,
 		NamespaceID: namespaceID,
 		WorkflowID:  workflowID,
 		RunID:       runID,
-		TimerID:     convert.StringPtr(timerID),
 	}
-	rows, err := s.store.SelectFromTimerInfoMaps(filter)
+	rows, err := s.store.SelectFromTimerInfoMaps(selectFilter)
 	s.NoError(err)
 	rowMap := map[string]sqlplugin.TimerInfoMapsRow{}
 	for _, timer := range rows {
@@ -160,14 +161,13 @@ func (s *historyExecutionTimerSuite) TestReplaceSelect_Multiple() {
 	s.NoError(err)
 	s.Equal(numTimers, int(rowsAffected))
 
-	filter := &sqlplugin.TimerInfoMapsFilter{
+	selectFilter := sqlplugin.TimerInfoMapsSelectFilter{
 		ShardID:     shardID,
 		NamespaceID: namespaceID,
 		WorkflowID:  workflowID,
 		RunID:       runID,
-		TimerID:     nil,
 	}
-	rows, err := s.store.SelectFromTimerInfoMaps(filter)
+	rows, err := s.store.SelectFromTimerInfoMaps(selectFilter)
 	s.NoError(err)
 	timerMap := map[string]sqlplugin.TimerInfoMapsRow{}
 	for _, timer := range timers {
@@ -187,20 +187,26 @@ func (s *historyExecutionTimerSuite) TestDeleteSelect_Single() {
 	runID := primitives.NewUUID()
 	timerID := shuffle.String(testHistoryExecutionTimerID)
 
-	filter := &sqlplugin.TimerInfoMapsFilter{
+	deletFilter := sqlplugin.TimerInfoMapsDeleteFilter{
 		ShardID:     shardID,
 		NamespaceID: namespaceID,
 		WorkflowID:  workflowID,
 		RunID:       runID,
 		TimerID:     convert.StringPtr(timerID),
 	}
-	result, err := s.store.DeleteFromTimerInfoMaps(filter)
+	result, err := s.store.DeleteFromTimerInfoMaps(deletFilter)
 	s.NoError(err)
 	rowsAffected, err := result.RowsAffected()
 	s.NoError(err)
 	s.Equal(0, int(rowsAffected))
 
-	rows, err := s.store.SelectFromTimerInfoMaps(filter)
+	selectFilter := sqlplugin.TimerInfoMapsSelectFilter{
+		ShardID:     shardID,
+		NamespaceID: namespaceID,
+		WorkflowID:  workflowID,
+		RunID:       runID,
+	}
+	rows, err := s.store.SelectFromTimerInfoMaps(selectFilter)
 	s.NoError(err)
 	s.Equal([]sqlplugin.TimerInfoMapsRow(nil), rows)
 }
@@ -211,20 +217,26 @@ func (s *historyExecutionTimerSuite) TestDeleteSelect_Multiple() {
 	workflowID := shuffle.String(testHistoryExecutionWorkflowID)
 	runID := primitives.NewUUID()
 
-	filter := &sqlplugin.TimerInfoMapsFilter{
+	deleteFilter := sqlplugin.TimerInfoMapsDeleteFilter{
 		ShardID:     shardID,
 		NamespaceID: namespaceID,
 		WorkflowID:  workflowID,
 		RunID:       runID,
 		TimerID:     nil,
 	}
-	result, err := s.store.DeleteFromTimerInfoMaps(filter)
+	result, err := s.store.DeleteFromTimerInfoMaps(deleteFilter)
 	s.NoError(err)
 	rowsAffected, err := result.RowsAffected()
 	s.NoError(err)
 	s.Equal(0, int(rowsAffected))
 
-	rows, err := s.store.SelectFromTimerInfoMaps(filter)
+	selectFilter := sqlplugin.TimerInfoMapsSelectFilter{
+		ShardID:     shardID,
+		NamespaceID: namespaceID,
+		WorkflowID:  workflowID,
+		RunID:       runID,
+	}
+	rows, err := s.store.SelectFromTimerInfoMaps(selectFilter)
 	s.NoError(err)
 	s.Equal([]sqlplugin.TimerInfoMapsRow(nil), rows)
 }
@@ -243,20 +255,26 @@ func (s *historyExecutionTimerSuite) TestReplaceDeleteSelect_Single() {
 	s.NoError(err)
 	s.Equal(1, int(rowsAffected))
 
-	filter := &sqlplugin.TimerInfoMapsFilter{
+	deleteFilter := sqlplugin.TimerInfoMapsDeleteFilter{
 		ShardID:     shardID,
 		NamespaceID: namespaceID,
 		WorkflowID:  workflowID,
 		RunID:       runID,
 		TimerID:     convert.StringPtr(timerID),
 	}
-	result, err = s.store.DeleteFromTimerInfoMaps(filter)
+	result, err = s.store.DeleteFromTimerInfoMaps(deleteFilter)
 	s.NoError(err)
 	rowsAffected, err = result.RowsAffected()
 	s.NoError(err)
 	s.Equal(1, int(rowsAffected))
 
-	rows, err := s.store.SelectFromTimerInfoMaps(filter)
+	selectFilter := sqlplugin.TimerInfoMapsSelectFilter{
+		ShardID:     shardID,
+		NamespaceID: namespaceID,
+		WorkflowID:  workflowID,
+		RunID:       runID,
+	}
+	rows, err := s.store.SelectFromTimerInfoMaps(selectFilter)
 	s.NoError(err)
 	s.Equal([]sqlplugin.TimerInfoMapsRow(nil), rows)
 }
@@ -280,20 +298,26 @@ func (s *historyExecutionTimerSuite) TestReplaceDeleteSelect_Multiple() {
 	s.NoError(err)
 	s.Equal(numTimers, int(rowsAffected))
 
-	filter := &sqlplugin.TimerInfoMapsFilter{
+	deleteFilter := sqlplugin.TimerInfoMapsDeleteFilter{
 		ShardID:     shardID,
 		NamespaceID: namespaceID,
 		WorkflowID:  workflowID,
 		RunID:       runID,
 		TimerID:     nil,
 	}
-	result, err = s.store.DeleteFromTimerInfoMaps(filter)
+	result, err = s.store.DeleteFromTimerInfoMaps(deleteFilter)
 	s.NoError(err)
 	rowsAffected, err = result.RowsAffected()
 	s.NoError(err)
 	s.Equal(numTimers, int(rowsAffected))
 
-	rows, err := s.store.SelectFromTimerInfoMaps(filter)
+	selectFilter := sqlplugin.TimerInfoMapsSelectFilter{
+		ShardID:     shardID,
+		NamespaceID: namespaceID,
+		WorkflowID:  workflowID,
+		RunID:       runID,
+	}
+	rows, err := s.store.SelectFromTimerInfoMaps(selectFilter)
 	s.NoError(err)
 	s.Equal([]sqlplugin.TimerInfoMapsRow(nil), rows)
 }

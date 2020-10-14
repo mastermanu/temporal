@@ -2,6 +2,8 @@
 //
 // Copyright (c) 2020 Temporal Technologies Inc.  All rights reserved.
 //
+// Copyright (c) 2020 Uber Technologies, Inc.
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
@@ -25,9 +27,6 @@ package sqlplugin
 import (
 	"time"
 
-	enumspb "go.temporal.io/api/enums/v1"
-
-	enumsspb "go.temporal.io/server/api/enums/v1"
 	"go.temporal.io/server/common/persistence"
 	"go.temporal.io/server/common/primitives"
 )
@@ -39,6 +38,9 @@ type (
 		Data         []byte
 		DataEncoding string
 		Version      int64
+		// TODO(vitarb): immutable metadata is needed for backward compatibility only, remove after 1.1 release.
+		ImmutableData         []byte
+		ImmutableDataEncoding string
 	}
 
 	// ClusterMembershipRow represents a row in the cluster_membership table
@@ -110,53 +112,6 @@ type (
 	// can be used to filter results through a WHERE clause
 	ShardsFilter struct {
 		ShardID int32
-	}
-
-	// ExecutionsRow represents a row in executions table
-	ExecutionsRow struct {
-		ShardID                  int32
-		NamespaceID              primitives.UUID
-		WorkflowID               string
-		RunID                    primitives.UUID
-		NextEventID              int64
-		LastWriteVersion         int64
-		Data                     []byte
-		DataEncoding             string
-		State                    []byte
-		StateEncoding            string
-		VersionHistories         []byte
-		VersionHistoriesEncoding string
-	}
-
-	// ExecutionsFilter contains the column names within executions table that
-	// can be used to filter results through a WHERE clause
-	ExecutionsFilter struct {
-		ShardID     int32
-		NamespaceID primitives.UUID
-		WorkflowID  string
-		RunID       primitives.UUID
-	}
-
-	// CurrentExecutionsRow represents a row in current_executions table
-	CurrentExecutionsRow struct {
-		ShardID          int32
-		NamespaceID      primitives.UUID
-		WorkflowID       string
-		RunID            primitives.UUID
-		CreateRequestID  string
-		State            enumsspb.WorkflowExecutionState
-		Status           enumspb.WorkflowExecutionStatus
-		LastWriteVersion int64
-		StartVersion     int64
-	}
-
-	// CurrentExecutionsFilter contains the column names within current_executions table that
-	// can be used to filter results through a WHERE clause
-	CurrentExecutionsFilter struct {
-		ShardID     int32
-		NamespaceID primitives.UUID
-		WorkflowID  string
-		RunID       primitives.UUID
 	}
 
 	// BufferedEventsRow represents a row in buffered_events table
@@ -278,172 +233,6 @@ type (
 		FirstEventID *int64
 		NextEventID  *int64
 		PageSize     *int
-	}
-
-	// HistoryNodeRow represents a row in history_node table
-	HistoryNodeRow struct {
-		ShardID  int32
-		TreeID   primitives.UUID
-		BranchID primitives.UUID
-		NodeID   int64
-		// use pointer so that it's easier to multiple by -1
-		TxnID        *int64
-		Data         []byte
-		DataEncoding string
-	}
-
-	// HistoryNodeFilter contains the column names within history_node table that
-	// can be used to filter results through a WHERE clause
-	HistoryNodeFilter struct {
-		ShardID  int32
-		TreeID   primitives.UUID
-		BranchID primitives.UUID
-		// Inclusive
-		MinNodeID *int64
-		// Exclusive
-		MaxNodeID *int64
-		PageSize  *int
-	}
-
-	// HistoryTreeRow represents a row in history_tree table
-	HistoryTreeRow struct {
-		ShardID      int32
-		TreeID       primitives.UUID
-		BranchID     primitives.UUID
-		Data         []byte
-		DataEncoding string
-	}
-
-	// HistoryTreeFilter contains the column names within history_tree table that
-	// can be used to filter results through a WHERE clause
-	HistoryTreeFilter struct {
-		ShardID  int32
-		TreeID   primitives.UUID
-		BranchID primitives.UUID
-	}
-
-	// ActivityInfoMapsRow represents a row in activity_info_maps table
-	ActivityInfoMapsRow struct {
-		ShardID      int32
-		NamespaceID  primitives.UUID
-		WorkflowID   string
-		RunID        primitives.UUID
-		ScheduleID   int64
-		Data         []byte
-		DataEncoding string
-	}
-
-	// ActivityInfoMapsFilter contains the column names within activity_info_maps table that
-	// can be used to filter results through a WHERE clause
-	ActivityInfoMapsFilter struct {
-		ShardID     int32
-		NamespaceID primitives.UUID
-		WorkflowID  string
-		RunID       primitives.UUID
-		ScheduleID  *int64
-	}
-
-	// TimerInfoMapsRow represents a row in timer_info_maps table
-	TimerInfoMapsRow struct {
-		ShardID      int32
-		NamespaceID  primitives.UUID
-		WorkflowID   string
-		RunID        primitives.UUID
-		TimerID      string
-		Data         []byte
-		DataEncoding string
-	}
-
-	// TimerInfoMapsFilter contains the column names within timer_info_maps table that
-	// can be used to filter results through a WHERE clause
-	TimerInfoMapsFilter struct {
-		ShardID     int32
-		NamespaceID primitives.UUID
-		WorkflowID  string
-		RunID       primitives.UUID
-		TimerID     *string
-	}
-
-	// ChildExecutionInfoMapsRow represents a row in child_execution_info_maps table
-	ChildExecutionInfoMapsRow struct {
-		ShardID      int32
-		NamespaceID  primitives.UUID
-		WorkflowID   string
-		RunID        primitives.UUID
-		InitiatedID  int64
-		Data         []byte
-		DataEncoding string
-	}
-
-	// ChildExecutionInfoMapsFilter contains the column names within child_execution_info_maps table that
-	// can be used to filter results through a WHERE clause
-	ChildExecutionInfoMapsFilter struct {
-		ShardID     int32
-		NamespaceID primitives.UUID
-		WorkflowID  string
-		RunID       primitives.UUID
-		InitiatedID *int64
-	}
-
-	// RequestCancelInfoMapsRow represents a row in request_cancel_info_maps table
-	RequestCancelInfoMapsRow struct {
-		ShardID      int32
-		NamespaceID  primitives.UUID
-		WorkflowID   string
-		RunID        primitives.UUID
-		InitiatedID  int64
-		Data         []byte
-		DataEncoding string
-	}
-
-	// RequestCancelInfoMapsFilter contains the column names within request_cancel_info_maps table that
-	// can be used to filter results through a WHERE clause
-	RequestCancelInfoMapsFilter struct {
-		ShardID     int32
-		NamespaceID primitives.UUID
-		WorkflowID  string
-		RunID       primitives.UUID
-		InitiatedID *int64
-	}
-
-	// SignalInfoMapsRow represents a row in signal_info_maps table
-	SignalInfoMapsRow struct {
-		ShardID      int32
-		NamespaceID  primitives.UUID
-		WorkflowID   string
-		RunID        primitives.UUID
-		InitiatedID  int64
-		Data         []byte
-		DataEncoding string
-	}
-
-	// SignalInfoMapsFilter contains the column names within signal_info_maps table that
-	// can be used to filter results through a WHERE clause
-	SignalInfoMapsFilter struct {
-		ShardID     int32
-		NamespaceID primitives.UUID
-		WorkflowID  string
-		RunID       primitives.UUID
-		InitiatedID *int64
-	}
-
-	// SignalsRequestedSetsRow represents a row in signals_requested_sets table
-	SignalsRequestedSetsRow struct {
-		ShardID     int32
-		NamespaceID primitives.UUID
-		WorkflowID  string
-		RunID       primitives.UUID
-		SignalID    string
-	}
-
-	// SignalsRequestedSetsFilter contains the column names within signals_requested_sets table that
-	// can be used to filter results through a WHERE clause
-	SignalsRequestedSetsFilter struct {
-		ShardID     int32
-		NamespaceID primitives.UUID
-		WorkflowID  string
-		RunID       primitives.UUID
-		SignalID    *string
 	}
 
 	// QueueRow represents a row in queue table

@@ -2,6 +2,8 @@
 //
 // Copyright (c) 2020 Temporal Technologies Inc.  All rights reserved.
 //
+// Copyright (c) 2020 Uber Technologies, Inc.
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
@@ -119,6 +121,74 @@ func TestPostgreSQLHistoryShardSuite(t *testing.T) {
 	}()
 
 	s := newHistoryShardSuite(t, store)
+	suite.Run(t, s)
+}
+
+func TestPostgreSQLHistoryNodeSuite(t *testing.T) {
+	cfg := NewPostgreSQLConfig()
+	SetupPostgreSQLDatabase(cfg)
+	SetupPostgreSQLSchema(cfg)
+	store, err := sql.NewSQLDB(cfg)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create MySQL DB: %v", err))
+	}
+	defer func() {
+		_ = store.Close()
+		TearDownPostgreSQLDatabase(cfg)
+	}()
+
+	s := newHistoryNodeSuite(t, store)
+	suite.Run(t, s)
+}
+
+func TestPostgreSQLHistoryTreeSuite(t *testing.T) {
+	cfg := NewPostgreSQLConfig()
+	SetupPostgreSQLDatabase(cfg)
+	SetupPostgreSQLSchema(cfg)
+	store, err := sql.NewSQLDB(cfg)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create MySQL DB: %v", err))
+	}
+	defer func() {
+		_ = store.Close()
+		TearDownPostgreSQLDatabase(cfg)
+	}()
+
+	s := newHistoryTreeSuite(t, store)
+	suite.Run(t, s)
+}
+
+func TestPostgreSQLHistoryCurrentExecutionSuite(t *testing.T) {
+	cfg := NewPostgreSQLConfig()
+	SetupPostgreSQLDatabase(cfg)
+	SetupPostgreSQLSchema(cfg)
+	store, err := sql.NewSQLDB(cfg)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create MySQL DB: %v", err))
+	}
+	defer func() {
+		_ = store.Close()
+		TearDownPostgreSQLDatabase(cfg)
+	}()
+
+	s := newHistoryCurrentExecutionSuite(t, store)
+	suite.Run(t, s)
+}
+
+func TestPostgreSQLHistoryExecutionSuite(t *testing.T) {
+	cfg := NewPostgreSQLConfig()
+	SetupPostgreSQLDatabase(cfg)
+	SetupPostgreSQLSchema(cfg)
+	store, err := sql.NewSQLDB(cfg)
+	if err != nil {
+		panic(fmt.Sprintf("unable to create MySQL DB: %v", err))
+	}
+	defer func() {
+		_ = store.Close()
+		TearDownPostgreSQLDatabase(cfg)
+	}()
+
+	s := newHistoryExecutionSuite(t, store)
 	suite.Run(t, s)
 }
 

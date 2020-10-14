@@ -26,29 +26,22 @@ package mysql
 
 import (
 	"bytes"
-	"crypto/tls"
-	"crypto/x509"
 	"fmt"
-	"io/ioutil"
-	"net"
 	"net/url"
 	"strings"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/iancoleman/strcase"
 	"github.com/jmoiron/sqlx"
 
-	pt "go.temporal.io/server/common/persistence/persistence-tests"
 	"go.temporal.io/server/common/persistence/sql"
 	"go.temporal.io/server/common/persistence/sql/sqlplugin"
 	"go.temporal.io/server/common/service/config"
-	"go.temporal.io/server/environment"
 )
 
 const (
 	// PluginName is the name of the plugin
 	PluginName                   = "mysql"
-	dsnFmt                       = "%s:%s@%v(%v)/%s"
+	dsnFmt                       = "%v:%v@%v(%v)/%v"
 	isolationLevelAttrName       = "transaction_isolation"
 	isolationLevelAttrNameLegacy = "tx_isolation"
 	defaultIsolationLevel        = "'READ-COMMITTED'"
@@ -119,66 +112,6 @@ func (p *plugin) createDBConnection(cfg *config.SQL) (*sqlx.DB, error) {
 	return db, nil
 }
 
-func registerTLSConfig(cfg *config.SQL) error {
-	if cfg.TLS == nil || !cfg.TLS.Enabled {
-		return nil
-	}
-
-	host, _, err := net.SplitHostPort(cfg.ConnectAddr)
-	if err != nil {
-		return fmt.Errorf("error in host port from ConnectAddr: %v", err)
-	}
-
-	// TODO: create a way to set MinVersion and CipherSuites via cfg.
-	tlsConfig := &tls.Config{
-		ServerName: host,
-	}
-
-	if cfg.TLS.CaFile != "" {
-		rootCertPool := x509.NewCertPool()
-		pem, err := ioutil.ReadFile(cfg.TLS.CaFile)
-		if err != nil {
-			return fmt.Errorf("failed to load CA files: %v", err)
-		}
-		if ok := rootCertPool.AppendCertsFromPEM(pem); !ok {
-			return fmt.Errorf("failed to append CA file")
-		}
-		tlsConfig.RootCAs = rootCertPool
-	}
-
-	if cfg.TLS.CertFile != "" && cfg.TLS.KeyFile != "" {
-		clientCert := make([]tls.Certificate, 0, 1)
-		certs, err := tls.LoadX509KeyPair(
-			cfg.TLS.CertFile,
-			cfg.TLS.KeyFile,
-		)
-		if err != nil {
-			return fmt.Errorf("failed to load tls x509 key pair: %v", err)
-		}
-		clientCert = append(clientCert, certs)
-		tlsConfig.Certificates = clientCert
-	}
-
-	// In order to use the TLS configuration you need to register it. Once registered you use it by specifying
-	// `tls` in the connect attributes.
-	err = mysql.RegisterTLSConfig(customTLSName, tlsConfig)
-	if err != nil {
-		return fmt.Errorf("failed to register tls config: %v", err)
-	}
-
-	if cfg.ConnectAttributes == nil {
-		cfg.ConnectAttributes = map[string]string{}
-	}
-
-	// If no `tls` connect attribute is provided then we override it to our newly registered tls config automatically.
-	// This allows users to simply provide a tls config without needing to remember to also set the connect attribute
-	if cfg.ConnectAttributes["tls"] == "" {
-		cfg.ConnectAttributes["tls"] = customTLSName
-	}
-
-	return nil
-}
-
 func buildDSN(cfg *config.SQL) string {
 	attrs := buildDSNAttrs(cfg)
 	dsn := fmt.Sprintf(dsnFmt, cfg.User, cfg.Password, cfg.ConnectProtocol, cfg.ConnectAddr, cfg.DatabaseName)
@@ -236,24 +169,5 @@ func sanitizeAttr(inkey string, invalue string) (string, string) {
 		return key, value
 	default:
 		return inkey, invalue
-	}
-}
-
-const (
-	testUser      = "temporal"
-	testPassword  = "temporal"
-	testSchemaDir = "schema/mysql/v57"
-)
-
-// GetTestClusterOption return test options
-func GetTestClusterOption() *pt.TestBaseOptions {
-	return &pt.TestBaseOptions{
-		SQLDBPluginName: PluginName,
-		DBUsername:      testUser,
-		DBPassword:      testPassword,
-		DBHost:          environment.GetMySQLAddress(),
-		DBPort:          environment.GetMySQLPort(),
-		SchemaDir:       testSchemaDir,
-		StoreType:       config.StoreTypeSQL,
 	}
 }
