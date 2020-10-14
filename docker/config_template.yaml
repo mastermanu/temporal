@@ -17,10 +17,14 @@ persistence:
             cassandra:
                 hosts: {{ default .Env.CASSANDRA_SEEDS "" }}
                 keyspace: {{ default .Env.KEYSPACE "temporal" }}
+                user: {{ default .Env.CASSANDRA_USER "" }}
+                password: {{ default .Env.CASSANDRA_PASSWORD "" }}
         visibility:
             cassandra:
                 hosts: {{ default .Env.CASSANDRA_SEEDS "" }}
                 keyspace: {{ default .Env.VISIBILITY_KEYSPACE "temporal_visibility" }}
+                user: {{ default .Env.CASSANDRA_USER "" }}
+                password: {{ default .Env.CASSANDRA_PASSWORD "" }}
         {{- else if eq $db "mysql" }}
         default:
             sql:
