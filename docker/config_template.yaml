@@ -19,12 +19,27 @@ persistence:
                 keyspace: {{ default .Env.KEYSPACE "temporal" }}
                 user: {{ default .Env.CASSANDRA_USER "" }}
                 password: {{ default .Env.CASSANDRA_PASSWORD "" }}
+                port: {{ default .Env.CASSANDRA_PORT "9042" }}
+                tls:
+                    enabled: {{ default .Env.CASSANDRA_TLS_ENABLED "false" }}
+                    caData: {{ default .Env.CASSANDRA_CA_DATA "" }}
+                    certData: {{ default .Env.CASSANDRA_CERT_DATA "" }}
+                    keyData: {{ default .Env.CASSANDRA_CERT_KEY_DATA "" }}
+                    enableHostVerification: {{ default .Env.CASSANDRA_HOST_VERIFICATION "false"}}
+
         visibility:
             cassandra:
                 hosts: {{ default .Env.CASSANDRA_SEEDS "" }}
                 keyspace: {{ default .Env.VISIBILITY_KEYSPACE "temporal_visibility" }}
                 user: {{ default .Env.CASSANDRA_USER "" }}
                 password: {{ default .Env.CASSANDRA_PASSWORD "" }}
+                port: {{ default .Env.CASSANDRA_PORT "9042" }}
+                tls:
+                    enabled: {{ default .Env.CASSANDRA_TLS_ENABLED "false" }}
+                    caData: {{ default .Env.CASSANDRA_CA_DATA "" }}
+                    certData: {{ default .Env.CASSANDRA_CERT_DATA "" }}
+                    keyData: {{ default .Env.CASSANDRA_CERT_KEY_DATA "" }}
+                    enableHostVerification: {{ default .Env.CASSANDRA_HOST_VERIFICATION "false"}}
         {{- else if eq $db "mysql" }}
         default:
             sql:
