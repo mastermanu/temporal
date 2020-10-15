@@ -112,25 +112,45 @@ global:
     tls:
         internode:
             server:
+                requireClientAuth: {{ default .Env.TEMPORAL_TLS_REQUIRE_CLIENT_AUTH "false" }}
+
                 certFile: {{ default .Env.TEMPORAL_TLS_SERVER_CERT "" }}
                 keyFile: {{ default .Env.TEMPORAL_TLS_SERVER_KEY "" }}
-                requireClientAuth: {{ default .Env.TEMPORAL_TLS_REQUIRE_CLIENT_AUTH "false" }}
                 clientCaFiles:
                     - {{ default .Env.TEMPORAL_TLS_SERVER_CA_CERT "" }}
+
+                inlineData: {{ default .Env.TEMPORAL_TLS_INLINE "false" }}
+                certData: {{ default .ENV.TEMPORAL_TLS_SERVER_CERT_DATA "" }}
+                keyData: {{ default .Env.TEMPORAL_TLS_SERVER_KEY_DATA "" }}
+                clientCaData:
+                    - {{ default .Env.TEMPORAL_TLS_SERVER_CA_CERT_DATA "" }}
             client:
                 rootCaFiles:
                     - {{ default .Env.TEMPORAL_TLS_SERVER_CA_CERT "" }}
+                rootCaData:
+                    - {{ default .Env.TEMPORAL_TLS_SERVER_CA_CERT_DATA "" }}
+                inlineData: {{ default .Env.TEMPORAL_TLS_INLINE "false" }}
         frontend:
             server:
+                requireClientAuth: {{ default .Env.TEMPORAL_TLS_REQUIRE_CLIENT_AUTH "false" }}
                 certFile: {{ default .Env.TEMPORAL_TLS_FRONTEND_CERT "" }}
                 keyFile: {{ default .Env.TEMPORAL_TLS_FRONTEND_KEY "" }}
-                requireClientAuth: {{ default .Env.TEMPORAL_TLS_REQUIRE_CLIENT_AUTH "false" }}
                 clientCaFiles:
                     - {{ default .Env.TEMPORAL_TLS_CLIENT1_CA_CERT "" }}
                     - {{ default .Env.TEMPORAL_TLS_CLIENT2_CA_CERT "" }}
+
+                inlineData: {{ default .Env.TEMPORAL_TLS_INLINE "false" }}
+                certData: {{ default .ENV.TEMPORAL_TLS_FRONTEND_CERT_DATA "" }}
+                keyData: {{ default .Env.TEMPORAL_TLS_FRONTEND_KEY_DATA "" }}
+                clientCaData:
+                    - {{ default .Env.TEMPORAL_TLS_CLIENT1_CA_CERT_DATA "" }}
+                    - {{ default .Env.TEMPORAL_TLS_CLIENT2_CA_CERT_DATA "" }}
             client:
                 rootCaFiles:
                     - {{ default .Env.TEMPORAL_TLS_SERVER_CA_CERT "" }}
+                rootCaData:
+                    - {{ default .Env.TEMPORAL_TLS_SERVER_CA_CERT_DATA "" }}
+                inlineData: {{ default .Env.TEMPORAL_TLS_INLINE "false" }}
 
 services:
     frontend:
